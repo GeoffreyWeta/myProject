@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with WetaAI</title>
+    
+    <!-- Load CSS file from static -->
+    <link rel="stylesheet" href="{% static 'assets/css/meyawo.css' %}"> 
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Center vertically */
+            height: 100vh;
+            line-height: 1.5;
+            font-size: 14px; /* Adjust this value for smaller text */
+        }
+
+        h1 {
+            font-size: 2rem; /* Increased header size for better visibility */
+            color: #333;
+            text-align: center;
+            margin-top: 20px; /* Added margin above the header */
+            padding-top: 20px;
+        }
+        .chat-message {
+            font-size: 0.9rem; /* Smaller size for chat messages */
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Prevent overflow for better appearance */
+        }
+
+        .chat-history {
+            overflow-y: auto; /* Enable scrolling for chat history */
+            flex-grow: 1; /* Allow chat history to grow */
+            padding: 10px;
+            border: 1px solid #ccc; /* Border for better separation */
+            border-radius: 5px; /* Round edges */
+            max-height: 400px; /* Limit height of chat history */
+        }
+
+        .user-message, .bot-message {
+            border-radius: 10px; /* More rounded corners for messages */
+            padding: 10px 15px; /* Add padding for better spacing */
+            margin: 5px 0; /* Add vertical margin for spacing */
+            max-width: 80%; /* Limit message width */
+        }
+
+        .user-message {
+            align-self: flex-end; /* Align user messages to the right */
+            background-color: #1d72b8; /* Background color for user messages */
+            color: white; /* User message text color */
+        }
+
+        .bot-message {
+            align-self: flex-start; /* Align bot messages to the left */
+            background-color: #e1e1e1; /* Background color for bot messages */
+            color: #695aa6; /* Bot message text color */
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem; /* Larger text for input */
+        }
+    
+        button {
+            background-color: #695aa6;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease; /* Smooth transition for hover */
+            font-size: 1rem; /* Larger text for button */
+        }
+    
+        button:hover {
+            background-color: #594c8d;
+        }
+        h1 {
+        font-size: 2rem; /* Increased header size for better visibility */
+        color: #333;
+        text-align: center;
+        margin-top: 20px; /* Added margin above the header */
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="geoffrey">Weta</span><span class="weta">AI</span></h1>
+        <div class="chat-history" id="chat-history">
+            {% for message in history %}
+                <div class="chat-message">
+                    {% if message.role == 'user' %}
+                        <div class="user-message">{{ message.content }}</div>
+                    {% else %}
+                        <div class="bot-message">{{ message.content }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+   
+        <input type="text" id="query" placeholder="Type your message..." aria-label="Message input">
+        <button id="send-button" aria-label="Send message">Send</button>
+    </div>
+
+    <script>
+        // Function to append message to chat history
+        function appendMessage(role, content) {
+            const chatHistory = document.getElementById('chat-history');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message');
+
+            if (role === 'user') {
+                messageDiv.innerHTML = `<div class="user-message">${content}</div>`;
+            } else {
+                messageDiv.innerHTML = `<div class="bot-message">${content}</div>`;
+            }
+
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to bottom
+        }
+
+        // Send query to server when send button is clicked
+        document.getElementById('send-button').addEventListener('click', function() {
+            const query = document.getElementById('query').value.trim();
+            if (query) {
+                appendMessage('user', query); // Append user's message to chat history
+                document.getElementById('query').value = ''; // Clear input field
+
+                // Send POST request to server
+                fetch('{% url 'chat_query' %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `query=${encodeURIComponent(query)}` // Encode query for URL
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.response) {
+                        appendMessage('bot', data.response); // Append bot's response to chat history
+                    } else {
+                        console.error('Error:', data.error);
+                        appendMessage('bot', 'Sorry, something went wrong. Please try again.'); // Inform user of error
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    appendMessage('bot', 'Network error. Please try again.'); // Inform user of network error
+                });
+            }
+        });
+
+        // Allow sending message with Enter key
+        document.getElementById('query').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                document.getElementById('send-button').click();
+            }
+        });
+    </script>
+</body>
+</html>
