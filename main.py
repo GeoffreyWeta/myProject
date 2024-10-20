@@ -1,126 +1,112 @@
 import streamlit as st
 from typing import Generator
 from groq import Groq
-import os
 
-st.set_page_config(page_icon="💬", layout="wide",
-                   page_title="Groq Goes Brrrrrrrr...")
+# Custom settings
+chatbot_name = "WetaAI"
+assistant_avatar = "🤖"
+user_avatar = "👨‍💻"
+default_max_tokens = 8192  # Set default token limit for the model
 
 
+
+
+# Page setup
+st.set_page_config(page_icon="💬", layout="centered", page_title=f"{chatbot_name} Chatbot")
+
+
+# HTML for a styled back icon
+back_icon_html = '<a href="http://127.0.0.1:8000/" onclick="history.back();"><span style="font-size: 16px;color:grey">◀️ Back</span></a>'
+
+# Display the back icon
+st.markdown(back_icon_html, unsafe_allow_html=True)
+
+
+# Function for custom page icon
 def icon(emoji: str):
     """Shows an emoji as a Notion-style page icon."""
-    st.write(
-        f'<span style="font-size: 78px; line-height: 1">{emoji}</span>',
-        unsafe_allow_html=True,
-    )
+    st.write(f'<span style="font-size: 78px; line-height: 1">{emoji}</span>', unsafe_allow_html=True)
+
+# Display custom emoji icon
+# icon("🏎️")
 
 
-icon("🏎️")
-
-st.subheader("Groq Chat Streamlit App", divider="rainbow", anchor=False)
 
 
-api_key = os.getenv("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")
+st.subheader(f"{chatbot_name} Chatbot", divider="gray", anchor=False)
 
 
-client = Groq(
-    api_key=st.secrets["GROQ_API_KEY"],
-)
+# Set up the Groq client
+client = Groq(api_key="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")
 
-# Initialize chat history and selected model
+# Predefined model
+model_option = "llama3-8b-8192"  # No need to let the user choose, it's fixed
+
+# Initialize chat history if not already present
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-if "selected_model" not in st.session_state:
-    st.session_state.selected_model = None
+# Set a static value for max tokens, or remove the slider completely
+max_tokens_range = default_max_tokens  # Fixed token limit for llama3-8b-8192
+max_tokens = max_tokens_range  # Set to default
 
-# Define model details
-models = {
-    "gemma-7b-it": {"name": "Gemma-7b-it", "tokens": 8192, "developer": "Google"},
-    "llama2-70b-4096": {"name": "LLaMA2-70b-chat", "tokens": 4096, "developer": "Meta"},
-    "llama3-70b-8192": {"name": "LLaMA3-70b-8192", "tokens": 8192, "developer": "Meta"},
-    "llama3-8b-8192": {"name": "LLaMA3-8b-8192", "tokens": 8192, "developer": "Meta"},
-    "mixtral-8x7b-32768": {"name": "Mixtral-8x7b-Instruct-v0.1", "tokens": 32768, "developer": "Mistral"},
-}
-
-# Layout for model selection and max_tokens slider
-col1, col2 = st.columns(2)
-
-with col1:
-    model_option = st.selectbox(
-        "Choose a model:",
-        options=list(models.keys()),
-        format_func=lambda x: models[x]["name"],
-        index=4  # Default to mixtral
-    )
-
-# Detect model change and clear chat history if model has changed
-if st.session_state.selected_model != model_option:
-    st.session_state.messages = []
-    st.session_state.selected_model = model_option
-
-max_tokens_range = models[model_option]["tokens"]
-
-with col2:
-    # Adjust max_tokens slider dynamically based on the selected model
-    max_tokens = st.slider(
-        "Max Tokens:",
-        min_value=512,  # Minimum value to allow some flexibility
-        max_value=max_tokens_range,
-        # Default value or max allowed if less
-        value=min(32768, max_tokens_range),
-        step=512,
-        help=f"Adjust the maximum number of tokens (words) for the model's response. Max for selected model: {max_tokens_range}"
-    )
-
-# Display chat messages from history on app rerun
+# Display chat messages from history
 for message in st.session_state.messages:
-    avatar = '🤖' if message["role"] == "assistant" else '👨‍💻'
+    avatar = assistant_avatar if message["role"] == "assistant" else user_avatar
     with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
 
-
+# Generate chat responses function
 def generate_chat_responses(chat_completion) -> Generator[str, None, None]:
     """Yield chat response content from the Groq API response."""
     for chunk in chat_completion:
         if chunk.choices[0].delta.content:
             yield chunk.choices[0].delta.content
 
+# Initialize response storage
+full_response = ""
 
-if prompt := st.chat_input("Enter your prompt here..."):
+# Accept user input
+if prompt := st.chat_input(f"Ask {chatbot_name} anything..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
 
-    with st.chat_message("user", avatar='👨‍💻'):
+    # Display user message
+    with st.chat_message("user", avatar=user_avatar):
         st.markdown(prompt)
 
     # Fetch response from Groq API
     try:
         chat_completion = client.chat.completions.create(
             model=model_option,
-            messages=[
-                {
-                    "role": m["role"],
-                    "content": m["content"]
-                }
-                for m in st.session_state.messages
-            ],
+            messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
             max_tokens=max_tokens,
-            stream=True
+            stream=True  # Stream output in real-time
         )
 
-        # Use the generator function with st.write_stream
-        with st.chat_message("assistant", avatar="🤖"):
+        # Display WetaAI's response
+        with st.chat_message("assistant", avatar=assistant_avatar):
             chat_responses_generator = generate_chat_responses(chat_completion)
             full_response = st.write_stream(chat_responses_generator)
+
     except Exception as e:
         st.error(e, icon="🚨")
 
-    # Append the full response to session_state.messages
+    # Append WetaAI's response to the chat history
     if isinstance(full_response, str):
-        st.session_state.messages.append(
-            {"role": "assistant", "content": full_response})
+        st.session_state.messages.append({"role": "assistant", "content": full_response})
     else:
-        # Handle the case where full_response is not a string
         combined_response = "\n".join(str(item) for item in full_response)
-        st.session_state.messages.append(
-            {"role": "assistant", "content": combined_response})
+        st.session_state.messages.append({"role": "assistant", "content": combined_response})
+
+
+if st.button("Clear"):
+    # Navigate back (clear messages) and attempt to close the window
+    st.session_state.messages.clear()
+    st.markdown(
+        """
+        <script>
+            window.close();
+        </script>
+        """,
+        unsafe_allow_html=True
+    )

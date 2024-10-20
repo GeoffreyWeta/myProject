@@ -3,6 +3,7 @@ from django.views import View
 from django.shortcuts import render
 from groq import Groq
 import logging
+import re
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -42,21 +43,66 @@ class ChatQuery(View):
 
             # Prepare response
             bot_response = chat_completion.choices[0].message.content
+            
+            # Format response to handle lists and code blocks
+            formatted_response = self.format_response(bot_response)
 
             # Update session history
             chat_history = request.session.get('chat_history', [])
             chat_history.append({'role': 'user', 'content': user_query})
-            chat_history.append({'role': 'bot', 'content': bot_response})
+            chat_history.append({'role': 'bot', 'content': formatted_response})
             request.session['chat_history'] = chat_history  # Store updated history
 
             # Return response as JSON
-            return JsonResponse({'response': bot_response})
+            return JsonResponse({'response': formatted_response})
 
         except Exception as e:
             logger.error(f"Error processing chat query: {e}")
             return JsonResponse({'error': 'Failed to get a response from the chat service.'}, status=500)
 
+    def format_response(self, response):
+        # Format lists with line breaks
+        response = re.sub(r'^\s*-\s+', '<br>', response, flags=re.MULTILINE)
+        response = re.sub(r'^\s*\*\s+', '<br>', response, flags=re.MULTILINE)
 
+        # Replace triple backticks with HTML <pre> and <code> tags for code blocks
+        response = re.sub(r'```(.*?)```', r'<pre><code>\1</code></pre>', response, flags=re.DOTALL)
+
+        # Replace single backticks with <code> for inline code
+        response = re.sub(r'`([^`]+)`', r'<code>\1</code>', response)
+
+        # Format lists into HTML <ul> or <ol>
+        response = self.format_list(response)
+
+        return response
+
+    def format_list(self, response):
+        lines = response.split('\n')
+        formatted_response = []
+        in_list = False
+        
+        for line in lines:
+            line = line.strip()
+            if line.startswith('- ') or line.startswith('* '):
+                if not in_list:
+                    formatted_response.append('<ul>')
+                    in_list = True
+                formatted_response.append(f'<li>{line[2:]}</li>')  # Remove '- ' or '* '
+            elif line and line[0].isdigit() and line[1] == '.':
+                if not in_list:
+                    formatted_response.append('<ol>')
+                    in_list = True
+                formatted_response.append(f'<li>{line[line.index(".") + 1:].strip()}</li>')  # Get the content after the number
+            else:
+                if in_list:
+                    formatted_response.append('</ul>' if line.startswith('- ') or line.startswith('* ') else '</ol>')
+                    in_list = False
+                formatted_response.append(line)  # Regular text
+        
+        if in_list:
+            formatted_response.append('</ul>' if line.startswith('- ') or line.startswith('* ') else '</ol>')
+
+        return '\n'.join(formatted_response)
 
 def index(request):
     return render(request, 'index.html')
