@@ -1,50 +1,105 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Geoffrey Weta">
+    <meta name="author" content="Devcrud">
+    <title>Geoffrey Weta</title>
+    
+    <!-- Font icons -->
+    <link rel="stylesheet" href="{% static 'vendors/themify-icons/css/themify-icons.css' %}">
+    
+    <!-- Bootstrap + Meyawo main styles -->
+    <link rel="stylesheet" href="{% static 'css/meyawo.css' %}">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Mrs+Sheppards&display=swap" rel="stylesheet">
+
+
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WetaAI Chatbot</title>
+    <title>Chatbot</title>
     <style>
-        .container {
-            width: 600px;
+
+        
+        /* Add some basic styling */
+        #chat-container {
+            width: 60vw;
             margin: auto;
             padding: 20px;
             border: 1px solid #ccc;
-            border-radius: 10px;
+            border-radius: 5px;
+            height: 80vh;
         }
-        .chat-history {
-            height: 400px;
+        #chat-history {
+            max-height: 85vh;
             overflow-y: auto;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
             border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        button {
+            padding: 10px;
+        }
+
+                /* General chat message styles */
+        .chat-message {
+            display: flex;
+            margin: 10px 0;
+            padding: 10px;
+        }
+
+        /* User message styling */
+        .user-message {
+            /* background-color: #e1f5fe; Light blue for user messages */
+       
             padding: 10px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin-left: auto; /* Align user message to the right */
+            max-width: 60%; /* Keep the message box from being too wide */
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word; /* Allow long words to break into the next line */
         }
-        .chat-message {
-            margin: 10px 0;
-        }
-        .user-message {
-            background-color: #e1f5fe;
-            padding: 10px;
-            border-radius: 5px;
-        }
+
+        /* Bot message styling */
         .bot-message {
-            background-color: #ffe0b2;
+            background-color: #fff; /* Light orange for bot messages */
+            color: #000; /* Brownish color for text */
             padding: 10px;
-            border-radius: 5px;
+            border-radius: 10px;
+            margin-right: auto; /* Align bot message to the left */
+            max-width: 60%; /* Keep the message box from being too wide */
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word; /* Allow long words to break into the next line */
         }
+
+        /* Code block styling within bot messages */
         .code-output {
             background-color: #f5f5f5;
             border: 1px solid #ccc;
             padding: 10px;
             border-radius: 5px;
-            white-space: pre;
+            white-space: pre-wrap; /* Preserve whitespace and wrap lines */
+            font-family: 'Courier New', Courier, monospace; /* Monospace font for code */
+            color: #000; /* Red for code text */
         }
         input[type="text"] {
             width: calc(100% - 100px);
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            flex-grow: 1;
         }
         button {
             padding: 10px;
@@ -52,35 +107,95 @@
             background-color: #007BFF;
             color: white;
             border-radius: 5px;
+            margin-left: 10px;
             cursor: pointer;
         }
         button:hover {
             background-color: #0056b3;
+
+            .input-container {
+            display: flex;
+            border-top: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fff;
+            position: sticky;
+            bottom: 0;
         }
+
+        
+
+        /* Responsive layout for smaller screens */
+        @media (max-width: 600px) {
+            .user-message, .bot-message {
+                max-width: 80%; /* Expand message width on small screens */
+            }
+        }
+
     </style>
 </head>
 <body>
+    <nav class="custom-navbar" data-spy="affix" data-offset-top="20">
+        <div class="container">
+            <a class="logo" href="#">
+                <span class="geoffrey">Geoffrey</span><span class="weta">Weta</span>
+            </a>
+            
+              
+            <ul class="nav">
+                <li class="item">
+                    <a class="link" href="#home">Home</a>
+                </li>
+                <li class="item">
+                    <a class="link" href="#about">About</a>
+                </li>
+                <li class="item">
+                    <a class="link" href="#portfolio">Portfolio</a>
+                </li>
+                <li class="item">
+                    <a class="link" href="#testmonial">Testmonial</a>
+                </li>
+                <li class="item">
+                    <a class="link" href="#blog">Blog</a>
+                </li>
+                <li class="item">
+                    <a class="link" href="#contact">Contact</a>
+                </li>
+                <!-- <li class="item ml-md-3">
+                    <a href="components.html" class="btn btn-primary">Components</a>
+                </li> -->
+            </ul>
+            <a href="javascript:void(0)" id="nav-toggle" class="hamburger hamburger--elastic">
+                <div class="hamburger-box">
+                    <div class="hamburger-inner"></div>
+                </div>
+            </a>
+        </div>
+    </nav><!-- End of Page Navbar -->
+
     <div class="container">
         <h1><span class="geoffrey">Weta</span><span class="weta">AI</span></h1>
         <div class="chat-history" id="chat-history">
             {% for message in history %}
                 <div class="chat-message">
                     {% if message.role == 'user' %}
-                        <div class="user-message">{{ message.content }}</div>
+                     <div class="user-message">{{ message.content }}</div>
+                     <span style="padding-top: 10px;">👨‍💻</span>
                     {% elif message.role == 'bot' %}
-                        <div class="bot-message{{ message.is_code|yesno:", code-output" }}">{{ message.content|safe }}</div>
+                        <span style="padding-top: 10px;">🤖</span>
+                        <div class="bot-message{{ message.is_code|yesno:", code-output" }}">{{ message.content }}</div> 
                     {% endif %}
                 </div>
             {% endfor %}
         </div>
    
         <input type="text" id="query" placeholder="Type your message..." aria-label="Message input">
-        <button id="send-button" aria-label="Send message">Send</button>
+        <button id="send-button" class="btn btn-primary" aria-label="Send message">Send</button>
+        <!-- <button id="clear-button" class="clear-button">Clear Chat</button> -->
     </div>
 
     <script>
         // Function to append message to chat history
-        function appendMessage(role, content) {
+        function appendMessage(role, content, isCode = false) {
             const chatHistory = document.getElementById('chat-history');
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('chat-message');
@@ -89,8 +204,9 @@
                 messageDiv.innerHTML = `<div class="user-message">${content}</div>`;
             } else {
                 // Check if the response is code by looking for backticks
-                const isCode = content.startsWith('<pre>') && content.endsWith('</pre>');
-                messageDiv.innerHTML = `<div class="bot-message${isCode ? ' code-output' : ''}">${content}</div>`;
+                const isCode = content.startsWith('```') && content.endsWith('```');
+                const formattedContent = isCode ? content.slice(3, -3).trim() : content; // Remove backticks
+                messageDiv.innerHTML = `<div class="bot-message${isCode ? ' code-output' : ''}">${formattedContent}</div>`;
             }
 
             chatHistory.appendChild(messageDiv);
@@ -135,4 +251,32 @@
             if (event.key === 'Enter') {
                 document.getElementById('send-button').click();
             }
-       
+        });
+    </script>
+    <script>
+        function appendMessage(role, content, isCode = false) {
+            const chatHistory = document.getElementById('chat-history');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message');
+
+            if (role === 'user') {
+                messageDiv.innerHTML = `<div class="user-message">${content}</div>`;
+            } else {
+                // Check if the response is code by looking for backticks
+                const isCode = content.startsWith('```') && content.endsWith('```');
+                const formattedContent = isCode ? content.slice(3, -3).trim() : content; // Remove backticks
+                messageDiv.innerHTML = `<div class="bot-message${isCode ? ' code-output' : ''}">${formattedContent}</div>`;
+            }
+
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Scroll to bottom
+        }
+        
+            // Clear the chat history when the clear button is clicked
+        document.getElementById('clear-button').addEventListener('click', function() {
+            const chatHistory = document.getElementById('chat-history');
+            chatHistory.innerHTML = ''; // Clear all messages
+        });
+    </script>
+</body>
+</html>

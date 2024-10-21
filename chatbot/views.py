@@ -62,6 +62,7 @@ class ChatQuery(View):
 
     def format_response(self, response):
         # Format lists with line breaks
+        # Assume lists are denoted by starting with "-" or bullet points
         response = re.sub(r'^\s*-\s+', '<br>', response, flags=re.MULTILINE)
         response = re.sub(r'^\s*\*\s+', '<br>', response, flags=re.MULTILINE)
 
@@ -71,38 +72,7 @@ class ChatQuery(View):
         # Replace single backticks with <code> for inline code
         response = re.sub(r'`([^`]+)`', r'<code>\1</code>', response)
 
-        # Format lists into HTML <ul> or <ol>
-        response = self.format_list(response)
-
         return response
-
-    def format_list(self, response):
-        lines = response.split('\n')
-        formatted_response = []
-        in_list = False
-        
-        for line in lines:
-            line = line.strip()
-            if line.startswith('- ') or line.startswith('* '):
-                if not in_list:
-                    formatted_response.append('<ul>')
-                    in_list = True
-                formatted_response.append(f'<li>{line[2:]}</li>')  # Remove '- ' or '* '
-            elif line and line[0].isdigit() and line[1] == '.':
-                if not in_list:
-                    formatted_response.append('<ol>')
-                    in_list = True
-                formatted_response.append(f'<li>{line[line.index(".") + 1:].strip()}</li>')  # Get the content after the number
-            else:
-                if in_list:
-                    formatted_response.append('</ul>' if line.startswith('- ') or line.startswith('* ') else '</ol>')
-                    in_list = False
-                formatted_response.append(line)  # Regular text
-        
-        if in_list:
-            formatted_response.append('</ul>' if line.startswith('- ') or line.startswith('* ') else '</ol>')
-
-        return '\n'.join(formatted_response)
 
 def index(request):
     return render(request, 'index.html')
