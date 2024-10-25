@@ -91,7 +91,7 @@
             padding: 10px;
             border-radius: 5px;
             white-space: pre-wrap; /* Preserve whitespace and wrap lines */
-            font-family: 'Courier New', Courier, monospace; /* Monospace font for code */
+            font-family: 'sans serif', Courier, monospace; /* Monospace font for code */
             color: #000; /* Red for code text */
         }
         input[type="text"] {
@@ -106,7 +106,7 @@
             border: none;
             background-color: #007BFF;
             color: white;
-            border-radius: 5px;
+            border-radius: 20px;
             margin-left: 10px;
             cursor: pointer;
         }
@@ -277,6 +277,17 @@
             const chatHistory = document.getElementById('chat-history');
             chatHistory.innerHTML = ''; // Clear all messages
         });
+
+        window.onload = function() {
+    autoScrollDown();
+    };
+
+    function autoScrollDown() {
+        var chatHistory = document.getElementById("chat-history");
+        chatHistory.scrollTop = chatHistory.scrollHeight;  // Scroll to the bottom of chat history
+    }
+
+
     </script>
 </body>
 </html>

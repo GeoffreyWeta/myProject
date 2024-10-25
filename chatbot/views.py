@@ -4,6 +4,11 @@ from django.shortcuts import render
 from groq import Groq
 import logging
 import re
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from .serializers import ContactSerializer
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -12,6 +17,13 @@ logger = logging.getLogger(__name__)
 client = Groq(api_key="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")
 
 class ChatQuery(View):
+
+    def clear_chat_history(self, request):
+        """Clears the chat history from the session."""
+        if 'chat_history' in request.session:
+            del request.session['chat_history']  # Remove chat history from the session
+        request.session.modified = True  # Ensure session changes are saved
+
     def get(self, request):
         # Render the HTML template for the chatbot
         return render(request, 'chatbot.html', {'history': request.session.get('chat_history', [])})
@@ -76,3 +88,16 @@ class ChatQuery(View):
 
 def index(request):
     return render(request, 'index.html')
+
+
+
+
+
+@api_view(['POST'])
+def contactme(request):
+    if request.method == 'POST':
+        serializer = ContactSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

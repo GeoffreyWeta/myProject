@@ -16,12 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from chatbot.views import ChatQuery,index
+from chatbot.views import ChatQuery,index,contactme
 from django.urls import include, path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', index, name='index'),  
+    path('Contact_me/', contactme, name='contact-api'),
     
     path("chatbot/", ChatQuery.as_view(), name="chat_query"),
 ]
