@@ -43,8 +43,12 @@ client = Groq(api_key="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"
 model_option = "llama3-8b-8192"  # No need to let the user choose, it's fixed
 
 # Initialize chat history if not already present
+# Initialize chat history with a welcome message if not already present
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [
+        {"role": "assistant", "content": f"Hello! I'm {chatbot_name}. I'm here to help answer your questions, provide insights, and chat about anything you're curious about. Let's get started!"}
+    ]
+
 
 # Set a static value for max tokens, or remove the slider completely
 max_tokens_range = default_max_tokens  # Fixed token limit for llama3-8b-8192
