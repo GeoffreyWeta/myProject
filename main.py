@@ -16,7 +16,7 @@ st.set_page_config(page_icon="💬", layout="centered", page_title=f"{chatbot_na
 
 
 # HTML for a styled back icon
-back_icon_html = '<a href="http://127.0.0.1:8000/" onclick="history.back();"><span style="font-size: 16px;color:grey">◀️ Back</span></a>'
+back_icon_html = '<a href="http://geoffreyweta.com/" onclick="history.back();"><span style="font-size: 16px;color:grey">◀️ Back</span></a>'
 
 # Display the back icon
 st.markdown(back_icon_html, unsafe_allow_html=True)
