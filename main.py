@@ -12,14 +12,12 @@ default_max_tokens = 8192  # Set default token limit for the model
 
 
 # Page setup
-st.set_page_config(page_icon="💬", layout="centered", page_title=f"{chatbot_name} Chatbot")
 
-
-# HTML for a styled back icon
-back_icon_html = '<a href="http://geoffreyweta.com/" onclick="history.back();"><span style="font-size: 16px;color:grey">◀️ Back</span></a>'
+# # HTML for a styled back icon
+# back_icon_html = '<a href="http://geoffreyweta.com/" onclick="history.back();"><span style="font-size: 16px;color:grey">◀️ Back</span></a>'
 
 # Display the back icon
-st.markdown(back_icon_html, unsafe_allow_html=True)
+# st.markdown(back_icon_html, unsafe_allow_html=True)
 
 
 # Function for custom page icon
@@ -33,7 +31,7 @@ def icon(emoji: str):
 
 
 
-st.subheader(f"{chatbot_name} Chatbot", divider="gray", anchor=False)
+# st.subheader(f"{chatbot_name} Chatbot", divider="gray", anchor=False)
 
 
 # Set up the Groq client
