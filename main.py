@@ -16,7 +16,7 @@ st.set_page_config(page_icon="💬", layout="centered", page_title=f"{chatbot_na
 
 
 # HTML for a styled back icon
-back_icon_html = '<a href="http://geoffreyweta.com/" onclick="history.back();"><span style="font-size: 16px;color:grey">◀️ Back</span></a>'
+back_icon_html = '<a href="http://127.0.0.1:8000/" onclick="history.back();"><span style="font-size: 16px;color:grey">◀️ Back</span></a>'
 
 # Display the back icon
 st.markdown(back_icon_html, unsafe_allow_html=True)
@@ -43,12 +43,8 @@ client = Groq(api_key="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"
 model_option = "llama3-8b-8192"  # No need to let the user choose, it's fixed
 
 # Initialize chat history if not already present
-# Initialize chat history with a welcome message if not already present
 if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "assistant", "content": f"Hello! I'm {chatbot_name}. I'm here to help answer your questions, provide insights, and chat about anything you're curious about. Let's get started!"}
-    ]
-
+    st.session_state.messages = []
 
 # Set a static value for max tokens, or remove the slider completely
 max_tokens_range = default_max_tokens  # Fixed token limit for llama3-8b-8192
